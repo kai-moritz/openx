@@ -4,8 +4,6 @@
 
 (function( openx, $, undefined ) {
 
-  var body = document.getElementsByTagName('body')[0];
-
   var id;
   var node;
 
@@ -21,14 +19,8 @@
 
     var domain = document.location.protocol == 'https:' ? 'https://' + server + ':8443':'http://' + server;
 
-    var spc = document.createElement('script');
-
-    spc.type = 'text/javascript';
-    spc.async = false;
-    spc.defer = false;
-
-    spc.src = domain;
-    spc.src += "/www/delivery/spc.php?zones=";
+    var src = domain;
+    src += "/www/delivery/spc.php?zones=";
 
     /** Only fetch banners, that are really included in this page */
     $('.oa').each(function() {
@@ -37,32 +29,22 @@
         if (node.hasClass(name)) {
           var id = 'oa_' + ++count;
           slots[id] = node;
-          spc.src += escape(id + '=' + zones[name] + "|");
+          src += escape(id + '=' + zones[name] + "|");
         }
       }
     });
 
-    spc.src += "&nz=1&source=" + escape(OA_source);
-    spc.src += "&r=" + Math.floor(Math.random()*99999999);
-    spc.src += "&block=1&charset=UTF-8";
+    src += "&nz=1&source=" + escape(OA_source);
+    src += "&r=" + Math.floor(Math.random()*99999999);
+    src += "&block=1&charset=UTF-8";
 
-    if (window.location)   spc.src += "&loc=" + escape(window.location);
-    if (document.referrer) spc.src += "&referer=" + escape(document.referrer);
+    if (window.location)   src += "&loc=" + escape(window.location);
+    if (document.referrer) src += "&referer=" + escape(document.referrer);
 
-    spc.onload = init_ads;
+    $.getScript(src, init_ads);
 
-    body.appendChild(spc);
-
-
-    var fl = document.createElement('script');
-
-    fl.type = 'text/javascript';
-    fl.async = false;
-    fl.defer = false;
-
-    fl.src = domain + '/www/delivery/fl.js';
-
-    body.appendChild(fl);
+    src = domain + '/www/delivery/fl.js';
+    $.getScript(src);
 
   }
 
@@ -91,7 +73,6 @@
     // node.append(id + ": " + node.attr('class'));
 
     var result;
-    var script;
     var src;
     var inline;
 
@@ -115,20 +96,13 @@
       result = /src\s*=\s*['"]([^'"]*)['"]/i.exec(src);
       if (result == null) {
         /** script-tag with inline-code: execute inline-code! */
-        eval(inline);
+        $.globalEval(inline);
       }
       else {
         /** script-tag with src-URL! */
-        script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.async = false;
-        script.defer = false;
-        script.src = result[1];
-        script.onload = render_ad;
-        /** The banner might not be rendered fully, or include more calls to document.write(). */
-        ads.push(id);
+        ads.push(id); // << The banner might not be rendered fully, or include more calls to document.write().
         /** Load the script and halt all work until the script is loaded and executed... */
-        body.appendChild(script); // << The onload-event is only fired when appendChild is used!
+        $.getScript(result[1], render_ad); // << jQuery.getScript() generates onload-Handler for _all_ browsers ;)
         return;
       }
     }
