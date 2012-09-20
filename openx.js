@@ -96,6 +96,11 @@
       result = /src\s*=\s*['"]([^'"]*)['"]/i.exec(src);
       if (result == null) {
         /** script-tag with inline-code: execute inline-code! */
+        result = /^\s*<.*$/m.exec(inline);
+        if (result != null) {
+          /** Remove leading HTML-comments, because IE will stumble otherwise */
+          inline = inline.slice(result[0].length,inline.length);
+        }
         $.globalEval(inline);
       }
       else {
@@ -128,3 +133,5 @@
   }
 
 } ( window.openx = window.openx || {}, jQuery ));
+
+var OA_output = {}; // << Needed, because IE will complain loudly otherwise!
