@@ -71,6 +71,8 @@
       id = ads.pop();
       node = slots[id];
 
+      node.slideDown();
+
       // node.append(id + ": " + node.attr('class'));
 
       var result, src, inline;
