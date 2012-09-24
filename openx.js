@@ -11,6 +11,7 @@
 
   count = 0,
   slots = {},
+  queue = [],
   ads = [];
 
 
@@ -18,6 +19,7 @@
 
     var
     domain = document.location.protocol == 'https:' ? 'https://' + server + ':8443':'http://' + server,
+    name,
     src = domain;
 
     document.write = document_write;
@@ -26,18 +28,19 @@
     src += "/www/delivery/spc.php?zones=";
 
     /** Only fetch banners, that are really included in this page */
-    $('.oa').each(function() {
-      var
-      node = $(this),
-      name, id;
-      for(name in zones) {
+    for(name in zones) {
+      $('.oa').each(function() {
+        var
+        node = $(this),
+        id;
         if (node.hasClass(name)) {
           id = 'oa_' + ++count;
           slots[id] = node;
+          queue.push(id);
           src += escape(id + '=' + zones[name] + "|");
         }
-      }
-    });
+      });
+    }
 
     src += "&nz=1&source=" + escape(OA_source);
     src += "&r=" + Math.floor(Math.random()*99999999);
@@ -55,7 +58,9 @@
 
   function init_ads() {
 
-    for (var id in slots) {
+    var i, id;
+    for (i=0; i<queue.length; i++) {
+      id = queue[i];
       if (typeof(OA_output[id]) != 'undefined' && OA_output[id] != '')
         ads.push(id);
     }
@@ -68,7 +73,7 @@
 
     while (ads.length > 0) {
 
-      id = ads.pop();
+      id = ads.shift();
       node = slots[id];
 
       node.slideDown();
@@ -105,7 +110,7 @@
           }
           else {
             /** script-tag with src-URL! */
-            ads.push(id); // << The banner might not be rendered fully, or include more calls to document.write().
+            ads.unshift(id); // << The banner might not be rendered fully, or include more calls to document.write().
             /** Load the script and halt all work until the script is loaded and executed... */
             $.getScript(result[1], render_ads); // << jQuery.getScript() generates onload-Handler for _all_ browsers ;)
             return;
