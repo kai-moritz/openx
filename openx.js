@@ -4,30 +4,35 @@
 
 (function( openx, $, undefined ) {
 
-  var id;
-  var node;
+  var
 
-  var count = 0;
-  var slots = {};
-  var ads = [];
+  id,
+  node,
+
+  count = 0,
+  slots = {},
+  ads = [];
 
 
   openx.show_ads = function(server, zones) {
 
+    var
+    domain = document.location.protocol == 'https:' ? 'https://' + server + ':8443':'http://' + server,
+    src = domain;
+
     document.write = render;
     document.writeln = render;
 
-    var domain = document.location.protocol == 'https:' ? 'https://' + server + ':8443':'http://' + server;
-
-    var src = domain;
     src += "/www/delivery/spc.php?zones=";
 
     /** Only fetch banners, that are really included in this page */
     $('.oa').each(function() {
-      var node = $(this);
-      for(var name in zones) {
+      var
+      node = $(this),
+      name, id;
+      for(name in zones) {
         if (node.hasClass(name)) {
-          var id = 'oa_' + ++count;
+          id = 'oa_' + ++count;
           slots[id] = node;
           src += escape(id + '=' + zones[name] + "|");
         }
@@ -72,9 +77,7 @@
 
     // node.append(id + ": " + node.attr('class'));
 
-    var result;
-    var src;
-    var inline;
+    var result, src, inline;
 
     while ((result = /<script/i.exec(OA_output[id])) != null) {
       node.append(OA_output[id].slice(0,result.index));
@@ -124,8 +127,11 @@
     if (id == undefined)
       return;
 
-    var str = "";
-    for (var i=0; i < arguments.length; i++)
+    var
+    str = "",
+    i;
+
+    for (i=0; i < arguments.length; i++)
       str += arguments[i];
 
     OA_output[id] = str + OA_output[id];
