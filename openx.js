@@ -12,7 +12,8 @@
   count = 0,
   slots = {},
   queue = [],
-  ads = [];
+  ads = [],
+  output = [];
 
 
   openx.show_ads = function(server, zones) {
@@ -73,6 +74,8 @@
 
     while (ads.length > 0) {
 
+      var result, src, inline, i;
+
       id = ads.shift();
       node = slots[id];
 
@@ -80,7 +83,17 @@
 
       // node.append(id + ": " + node.attr('class'));
 
-      var result, src, inline;
+      /**
+       * If output was added via document.write(), this output must be
+       * rendered before other banner-code from the OpenX-server is rendered!
+       */
+      if (output.length > 0) {
+        output.push(OA_output[id]);
+        OA_output[id] = "";
+        for (i=0; i<output.length; i++)
+          OA_output[id] += output[i];
+        output = [];
+      }
 
       while ((result = /<script/i.exec(OA_output[id])) != null) {
         node.append(OA_output[id].slice(0,result.index));
@@ -130,17 +143,18 @@
 
   function document_write() {
 
-    if (id == undefined)
-      return;
+    for (var i=0; i<arguments.length; i++)
+      output.push(arguments[i]);
 
-    var
-    str = "",
-    i;
-
-    for (i=0; i < arguments.length; i++)
-      str += arguments[i];
-
-    OA_output[id] = str + OA_output[id];
+    if (id != ads[0])
+      /**
+       * Re-Add the last banner-code to the working-queue, because included
+       * scripts had added markup via document.write(), which is not
+       * proccessed yet.
+       * Otherwise the added markup would be falsely rendered together with
+       * the markup from the following banner-code.
+       */
+      ads.unshift(id);
 
   }
 
