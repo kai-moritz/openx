@@ -23,6 +23,14 @@
     name,
     src = domain;
 
+    /**
+     * Without this option, jQuery appends an timestamp to every URL, that
+     * is fetched via $.getScript(). This can mess up badly written
+     * third-party-ad-scripts, that assume that the called URL's are not
+     * altered.
+     */
+    $.ajaxSetup({ cache: true });
+
     document.write = document_write;
     document.writeln = document_write;
 
