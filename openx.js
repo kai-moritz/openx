@@ -31,9 +31,6 @@
      */
     $.ajaxSetup({ cache: true });
 
-    document.write = document_write;
-    document.writeln = document_write;
-
     src += "/www/delivery/spc.php?zones=";
 
     /** Only fetch banners, that are really included in this page */
@@ -73,6 +70,9 @@
       if (typeof(OA_output[id]) != 'undefined' && OA_output[id] != '')
         ads.push(id);
     }
+
+    document.write = document_write;
+    document.writeln = document_write;
 
     render_ads();
 
@@ -126,7 +126,9 @@
           }
           else {
             /** script-tag with src-URL! */
-            ads.unshift(id); // << The banner might not be rendered fully, or include more calls to document.write().
+            if (OA_output[id].length > 0)
+              /** The banner-code was not rendered completely yet! */
+              ads.unshift(id);
             /** Load the script and halt all work until the script is loaded and executed... */
             $.getScript(result[1], render_ads); // << jQuery.getScript() generates onload-Handler for _all_ browsers ;)
             return;
@@ -146,6 +148,9 @@
 
   /** This function is used to overwrite document.write and document.writeln */
   function document_write() {
+
+    if (id == undefined)
+      return;
 
     for (var i=0; i<arguments.length; i++)
       output.push(arguments[i]);
