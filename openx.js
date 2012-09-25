@@ -87,13 +87,7 @@
        * If output was added via document.write(), this output must be
        * rendered before other banner-code from the OpenX-server is rendered!
        */
-      if (output.length > 0) {
-        output.push(OA_output[id]);
-        OA_output[id] = "";
-        for (i=0; i<output.length; i++)
-          OA_output[id] += output[i];
-        output = [];
-      }
+      insert_output();
 
       while ((result = /<script/i.exec(OA_output[id])) != null) {
         node.append(OA_output[id].slice(0,result.index));
@@ -120,6 +114,7 @@
               inline = inline.slice(result[0].length,inline.length);
             }
             $.globalEval(inline);
+            insert_output(); // << The executed inline-code might have called document.write()!
           }
           else {
             /** script-tag with src-URL! */
@@ -141,6 +136,7 @@
     node = undefined;
   }
 
+  /** This function is used to overwrite document.write and document.writeln */
   function document_write() {
 
     for (var i=0; i<arguments.length; i++)
@@ -155,6 +151,22 @@
        * the markup from the following banner-code.
        */
       ads.unshift(id);
+
+  }
+
+  /**
+   * This function prepends the collected output from calls to
+   * document_write() to the current banner-code.
+   */
+  function insert_output() {
+
+    if (output.length > 0) {
+      output.push(OA_output[id]);
+      OA_output[id] = "";
+      for (i=0; i<output.length; i++)
+        OA_output[id] += output[i];
+      output = [];
+    }
 
   }
 
