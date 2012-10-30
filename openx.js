@@ -109,11 +109,11 @@
         }
         else {
           /** Remember iinline-code, if present */
-          src = result[1]
+          src = result[1] + ' ' // << simplifies the following regular expression: the string ends with a space in any case, so that the src-URL cannot be followed by the end of the string emediately!
           inline = result[2];
           /** Strip all text up to and including "</script>" from OA_output[id] */
           OA_output[id] = OA_output[id].slice(result[0].length,OA_output[id].length);
-          result = /src\s*=\s*['"]([^'"]*)['"]/i.exec(src);
+          result = /src\s*=\s*['"]?([^'"]*)['"]?\s/i.exec(src);
           if (result == null) {
             /** script-tag with inline-code: execute inline-code! */
             result = /^\s*<.*$/m.exec(inline);
