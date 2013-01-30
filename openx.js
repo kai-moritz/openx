@@ -48,8 +48,9 @@
       });
     }
 
-    src += "&nz=1&source=" + escape(OA_source);
-    src += "&r=" + Math.floor(Math.random()*99999999);
+    if (typeof OA_source !== 'undefined')
+      src += "&source=" + escape(OA_source);
+    src += "&nz=1&r=" + Math.floor(Math.random()*99999999);
     src += "&block=1&charset=UTF-8";
 
     if (window.location)   src += "&loc=" + escape(window.location);
