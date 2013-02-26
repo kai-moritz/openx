@@ -15,7 +15,13 @@
  * - Kai Moritz
  */
 
-(function( openx, $, undefined ) {
+/*
+ * See http://coding.smashingmagazine.com/2011/10/11/essential-jquery-plugin-patterns/
+ * for detailed explanations for the applied best practices.
+ *
+ * The semicolon guides our code for poorly written concatenated scripts.
+ */
+;(function( $, window, document, undefined ) {
 
   var
 
@@ -28,7 +34,13 @@
   output = [];
 
 
-  openx.show_ads = function(server, zones) {
+  $.openx = function( server, zones, options ) {
+
+    if (domain) {
+      if (console.error)
+        console.error('jQuery.openx was already initialized!');
+      return;
+    }
 
     domain = document.location.protocol == 'https:' ? 'https://' + server + ':8443':'http://' + server;
 
@@ -99,7 +111,7 @@
 
     while (ads.length > 0) {
 
-      var result, src, inline, i;
+      var result, src, inline;
 
       id = ads.shift();
       node = slots[id];
@@ -200,6 +212,6 @@
 
   }
 
-} ( window.openx = window.openx || {}, jQuery ));
+})( jQuery, window, document );
 
 var OA_output = {}; // << Needed, because IE will complain loudly otherwise!
