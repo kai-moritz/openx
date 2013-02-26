@@ -6,8 +6,7 @@
 
   var
 
-  id,
-  node,
+  domain, id, node,
 
   count = 0,
   slots = {},
@@ -18,8 +17,9 @@
 
   openx.show_ads = function(server, zones) {
 
+    domain = document.location.protocol == 'https:' ? 'https://' + server + ':8443':'http://' + server;
+
     var
-    domain = document.location.protocol == 'https:' ? 'https://' + server + ':8443':'http://' + server,
     name,
     src = domain;
 
@@ -56,10 +56,13 @@
     if (window.location)   src += "&loc=" + escape(window.location);
     if (document.referrer) src += "&referer=" + escape(document.referrer);
 
-    $.getScript(src, init_ads);
+    $.getScript(src, load_flash);
 
-    src = domain + '/www/delivery/fl.js';
-    $.getScript(src);
+  }
+
+  function load_flash() {
+
+    $.getScript(domain + '/www/delivery/fl.js', init_ads);
 
   }
 
