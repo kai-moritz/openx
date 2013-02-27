@@ -25,7 +25,7 @@
 
   var
 
-  settings, _zones, _options, domain, id, node,
+  settings, _options, domain, id, node,
 
   count = 0,
   slots = {},
@@ -36,6 +36,12 @@
 
   /*
    * Configuration-Options for jQuery.openx
+   *
+   * Since the domain-name of the ad-server is the only required parameter,
+   * jQuery.openx for convenience can be configured with only that one
+   * parameter. For example: "jQuery.openx('openx.example.org');". If more
+   * configuration-options are needed, they must be specified as an object.
+   * For example: "jQuery.openx({'server': 'openx.example.org', ... });".
    *
    *
    * Server-Settings:
@@ -74,20 +80,22 @@
    *                        If empty, the charset is guessed by OpenX. Examples
    *                        for sensible values: "UTF-8", "ISO-8859-1".
    */
-  $.openx = function( zones, options ) {
+  $.openx = function( options ) {
 
     var name, src, errors = [], i;
 
     if (domain) {
       if (console.error) {
         console.error('jQuery.openx was already initialized!');
-        console.log('Configured zones: ', _zones);
         console.log('Configured options: ', _options);
       }
       return;
     }
 
-    _zones = zones;
+    /** Enable convenient-configuration */
+    if (typeof(options) == 'string')
+      options = { 'server': options };
+
     _options = options;
 
     if (!options.server)
@@ -140,7 +148,7 @@
      * to unnecessarily fetched banners.
      */
     src += '?zones=';
-    for(name in zones) {
+    for(name in OA_zones) {
       $('.oa').each(function() {
         var
         node = $(this),
@@ -149,7 +157,7 @@
           id = 'oa_' + ++count;
           slots[id] = node;
           queue.push(id);
-          src += escape(id + '=' + zones[name] + "|");
+          src += escape(id + '=' + OA_zones[name] + "|");
         }
       });
     }
