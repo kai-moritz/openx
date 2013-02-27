@@ -177,7 +177,7 @@
     if (settings.blockcampaign === 1)
       src += '&blockcampaign=1';
     if (settings.target)
-      src += '&target' + settings.target;
+      src += '&target=' + settings.target;
     if (settings.withtext === 1)
       src += '&withtext=1';
     if (settings.charset)
