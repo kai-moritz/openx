@@ -36,6 +36,8 @@
 
   $.openx = function( zones, options ) {
 
+    var name, src, errors = [], i;
+
     if (domain) {
       if (console.error) {
         console.error('jQuery.openx was already initialized!');
@@ -48,10 +50,20 @@
     _zones = zones;
     _options = options;
 
+    if (!options.server)
+      errors.push('Required option "server" is missing!');
+    if (errors.length > 0) {
+      if (console.error) {
+        for (i=0; i<errors.length; i++)
+          console.error('Required option "server" is missing!');
+        console.log('options: ', options);
+      }
+      return;
+    }
+
     settings = $.extend(
       {
-        'protocol': document.location.protocol,
-        'server': 'localhost'
+        'protocol': document.location.protocol
       },
       options
       );
@@ -63,10 +75,6 @@
     if (settings.protocol === 'https:' && settings.https_port)
       domain += ':' + settings.https_port;
 
-    var
-    name,
-    src = domain;
-
     /**
      * Without this option, jQuery appends an timestamp to every URL, that
      * is fetched via $.getScript(). This can mess up badly written
@@ -75,7 +83,7 @@
      */
     $.ajaxSetup({ cache: true });
 
-    src += "/www/delivery/spc.php?zones=";
+    src = domain + '/www/delivery/spc.php?zones=';
 
     /** Only fetch banners, that are really included in this page */
     for(name in zones) {
