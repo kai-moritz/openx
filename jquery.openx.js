@@ -25,7 +25,7 @@
 
   var
 
-  domain, id, node,
+  settings, domain, id, node,
 
   count = 0,
   slots = {},
@@ -34,7 +34,7 @@
   output = [];
 
 
-  $.openx = function( server, zones, options ) {
+  $.openx = function( zones, options ) {
 
     if (domain) {
       if (console.error)
@@ -42,7 +42,20 @@
       return;
     }
 
-    domain = document.location.protocol == 'https:' ? 'https://' + server + ':8443':'http://' + server;
+    settings = $.extend(
+      {
+        'protocol': document.location.protocol,
+        'server': 'localhost'
+      },
+      options
+      );
+
+    domain = settings.protocol + '//';
+    domain += settings.server;
+    if (settings.protocol === 'http:' && settings.http_port)
+      domain += ':' + settings.http_port;
+    if (settings.protocol === 'https:' && settings.https_port)
+      domain += ':' + settings.https_port;
 
     var
     name,
