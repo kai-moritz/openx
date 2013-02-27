@@ -25,7 +25,7 @@
 
   var
 
-  settings, domain, id, node,
+  settings, _zones, _options, domain, id, node,
 
   count = 0,
   slots = {},
@@ -37,10 +37,16 @@
   $.openx = function( zones, options ) {
 
     if (domain) {
-      if (console.error)
+      if (console.error) {
         console.error('jQuery.openx was already initialized!');
+        console.log('Configured zones: ', _zones);
+        console.log('Configured options: ', _options);
+      }
       return;
     }
+
+    _zones = zones;
+    _options = options;
 
     settings = $.extend(
       {
