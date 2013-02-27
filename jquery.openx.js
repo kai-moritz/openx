@@ -59,6 +59,13 @@
    *                        (only needed, when it is not the default-value 443).
    *
    *
+   * Seldom needed special Server-Settings (these parameters are only needed,
+   * if the default delivery-configration of the OpenX-Server was changed):
+   *
+   * path:          string  Path to delivery-scripts. DEFAULT: "/www/delivery".
+   * fl:            string  Flash-Include-Script. DEFAULT: "fl.js".
+   *
+   *
    * Delivery-Options (for details and explanations see the see:
    * http://www.openx.com/docs/2.8/userguide/single%20page%20call):
    *
@@ -112,6 +119,8 @@
     settings = $.extend(
       {
         'protocol': document.location.protocol,
+        'delivery': '/www/delivery',
+        'fl': 'fl.js',
         'cache': true
       },
       options
@@ -133,7 +142,7 @@
     $.ajaxSetup({ 'cache': true });
 
 
-    src = domain + '/www/delivery/spc.php';
+    src = domain + settings.delivery + '/spc.php';
 
     /**
      * jQuery.openx only works with "named zones", because it does not know,
@@ -194,7 +203,7 @@
 
   function load_flash() {
 
-    $.getScript(domain + '/www/delivery/fl.js', init_ads);
+    $.getScript(domain + settings.delivery + '/' + settings.fl, init_ads);
 
   }
 
