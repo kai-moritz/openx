@@ -34,6 +34,46 @@
   output = [];
 
 
+  /*
+   * Configuration-Options for jQuery.openx
+   *
+   *
+   * Server-Settings:
+   *
+   * server:        string  Name of the server, without protocol or port. For
+   *                        example "openx.example.org". This option is
+   *                        REQUIRED.
+   * protocol:              Optional parameter.
+   *                http:   All connections to the ad-server are made via HTTP.
+   *                https:  All connections to the ad-server are made via HTTPS.
+   *                        If empty, document.location.protocol will be used.
+   * http_port:     number  Port-Number for HTTP-connections to the ad-server
+   *                        (only needed, when it is not the default-value 80).
+   * https_port:            Port-Number for HTTPS-connections to the ad-server
+   *                        (only needed, when it is not the default-value 443).
+   *
+   *
+   * Delivery-Options (for details and explanations see the see:
+   * http://www.openx.com/docs/2.8/userguide/single%20page%20call):
+   *
+   * block:         1       Don't show the banner again on the same page.
+   *                0       A Banner might be shown multiple times on the same
+   *                        page (DEFAULT).
+   * blockcampaign: 1       Don't show a banner from the same campaign again on
+   *                        the same page.
+   *                0       A Banner from the same campaign might be shown
+   *                        muliple times on the same page (DEFAULT).
+   * target:        string  The value is addes as the HTML TARGET attribute in
+   *                        the ad code. Examples for sensible values: "_blank",
+   *                        "_top".
+   * withtext:      1       Show text below banner. Enter this text in the
+   *			    Banner properties page.
+   *                0       Ignore the text-field from the banner-properties
+                            (DEFAULT).
+   * charset:       string  Charset used, when delivering the banner-codes.
+   *                        If empty, the charset is guessed by OpenX. Examples
+   *                        for sensible values: "UTF-8", "ISO-8859-1".
+   */
   $.openx = function( zones, options ) {
 
     var name, src, errors = [], i;
@@ -63,7 +103,8 @@
 
     settings = $.extend(
       {
-        'protocol': document.location.protocol
+        'protocol': document.location.protocol,
+        'cache': true
       },
       options
       );
@@ -81,11 +122,24 @@
      * third-party-ad-scripts, that assume that the called URL's are not
      * altered.
      */
-    $.ajaxSetup({ cache: true });
+    $.ajaxSetup({ 'cache': true });
 
-    src = domain + '/www/delivery/spc.php?zones=';
 
-    /** Only fetch banners, that are really included in this page */
+    src = domain + '/www/delivery/spc.php';
+
+    /**
+     * jQuery.openx only works with "named zones", because it does not know,
+     * which zones belong to which website. For mor informations about
+     * "named zones" see:
+     * http://www.openx.com/docs/2.8/userguide/single%20page%20call
+     *
+     * For convenience, jQuery.openx only fetches banners, that are really
+     * included in the actual page. This way, you can configure jQuery.openx
+     * with all zones available for your website - for example in a central
+     * template - and does not have to worry about performance penalties due
+     * to unnecessarily fetched banners.
+     */
+    src += '?zones=';
     for(name in zones) {
       $('.oa').each(function() {
         var
@@ -99,15 +153,33 @@
         }
       });
     }
+    src += '&nz=1'; // << We want to fetch named zones!
 
-    if (typeof OA_source !== 'undefined')
-      src += "&source=" + escape(OA_source);
-    src += "&nz=1&r=" + Math.floor(Math.random()*99999999);
-    src += "&block=1&charset=UTF-8";
-
+    /**
+     * These are some additions to the URL of spc.php, that are originally
+     * made in spcjs.php
+     */
+    src += '&r=' + Math.floor(Math.random()*99999999);
     if (window.location)   src += "&loc=" + escape(window.location);
     if (document.referrer) src += "&referer=" + escape(document.referrer);
 
+    /** Add the configured options */
+    if (settings.block === 1)
+      src += '&block=1';
+    if (settings.blockcampaign === 1)
+      src += '&blockcampaign=1';
+    if (settings.target)
+      src += '&target' + settings.target;
+    if (settings.withtext === 1)
+      src += '&withtext=1';
+    if (settings.charset)
+      src += '&charset=' + settings.charset;
+
+    /** Add the source-code - if present */
+    if (typeof OA_source !== 'undefined')
+      src += "&source=" + escape(OA_source);
+
+    /** Chain-load the scripts (next script to load is fl.js */
     $.getScript(src, load_flash);
 
   }
