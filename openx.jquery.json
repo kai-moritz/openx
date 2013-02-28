@@ -3,7 +3,7 @@
   "title": "jQuery OpenX",
   "description": "jQuery plugin, that loads banner-ads from an OpenX-server in an asynchronous and responsive way",
   "keywords": [ "openx", "adserver", "banner", "asynchrone", "responsive" ],
-  "version": "0.1.2",
+  "version": "0.1.3",
   "author": { "name": "Kai Moritz", "email": "kai@juplo.de" },
   "licenses": [ { "type": "LGPLv3", "url": "http://www.gnu.org/licenses/lgpl-3.0.html" } ],
   "homepage": "http://juplo.de/openx",

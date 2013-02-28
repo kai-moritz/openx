@@ -86,6 +86,13 @@
    * charset:       string  Charset used, when delivering the banner-codes.
    *                        If empty, the charset is guessed by OpenX. Examples
    *                        for sensible values: "UTF-8", "ISO-8859-1".
+   *
+   *
+   * Other settings:
+   *
+   * selector:      string  A selector for selecting the DOM-elements, that
+   *                        should display ad-banners. DEFAULT: ".oa".
+   *                        See: http://api.jquery.com/category/selectors/
    */
   $.openx = function( options ) {
 
@@ -121,6 +128,7 @@
         'protocol': document.location.protocol,
         'delivery': '/www/delivery',
         'fl': 'fl.js',
+        'selector': '.oa',
         'cache': true
       },
       options
@@ -158,7 +166,7 @@
      */
     src += '?zones=';
     for(name in OA_zones) {
-      $('.oa').each(function() {
+      $(settings.selector).each(function() {
         var
         node = $(this),
         id;
