@@ -32,6 +32,7 @@
   min_width = {},
   max_width = {},
   width,
+  rendered = {},
   queue = [],
   output = [];
 
@@ -187,6 +188,7 @@
             if (match)
               max_width[id] = match[1];
           }
+          rendered[id] = false;
         }
       });
     }
@@ -209,6 +211,7 @@
       if (width >= min_width[id] && width <= max_width[id]) {
         queue.push(id);
         src += escape(id + '=' + OA_zones[slots[id].id] + "|");
+        rendered[id] = true;
       }
     }
     src += '&nz=1'; // << We want to fetch named zones!
