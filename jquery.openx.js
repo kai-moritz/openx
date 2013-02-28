@@ -31,7 +31,8 @@
   slots = {},
   min_width = {},
   max_width = {},
-  width,
+  is_pagewidth = {},
+  pagewidth,
   rendered = {},
   visible = {},
   rendering = false,
@@ -100,9 +101,11 @@
    *                        should display ad-banners. DEFAULT: ".oa".
    *                        See: http://api.jquery.com/category/selectors/
    * min_prefix:    string  Prefix for the encoding of the minmal width as
-   *                        CSS-classname. DEFAULT: "min_".
+   *                        CSS-class. DEFAULT: "min_".
    * max_prefix:    string  Prefix for the encoding of the maximal width as
-   *                        CSS-classname. DEFAULT: "max_".
+   *                        CSS-class. DEFAULT: "max_".
+   * pw_marker:     string  CSS-class, that marks the encoded maximal and minmal
+   *                        width as page width. DEFAULT: "pw".
    * resize_delay:  number  Number of milliseconds to wait, before a
    *                        recalculation of the visible ads is scheduled.
    *                        If the value is choosen to small, a recalculation
@@ -142,6 +145,7 @@
         'selector': '.oa',
         'min_prefix': 'min_',
         'max_prefix': 'max_',
+        'pw_marker': 'pw',
         'resize_delay': 200,
         'debug': false
       },
@@ -192,22 +196,25 @@
           slots[id] = this;
           min_width[id] = 0;
           max_width[id] = Number.MAX_VALUE;
+          is_pagewidth[id] = false;
           classes = this.className.split(/\s+/);
           for (i=0; i<classes.length; i++) {
             match = min.exec(classes[i]);
             if (match)
-              min_width[id] = match[1];
+              min_width[id] = +match[1];
             match = max.exec(classes[i]);
             if (match)
-              max_width[id] = match[1];
+              max_width[id] = +match[1];
+            is_pagewidth[id] = classes[i] === settings.pw_marker;
           }
           rendered[id] = false;
           visible[id] = false;
           if (settings.debug && console.debug)
             console.debug(
-                'Slot ' + count + ': ' + this.id + ' (' + min_width[id]
+                'Slot ' + count + ': ' + this.id
+                + (is_pagewidth[id] ? ', pagewidth: ' : ', width: ')
+                + min_width[id]
                 + (max_width[id] != Number.MAX_VALUE ? '-' + max_width[id] : '')
-                + ')'
                 );
         }
       });
@@ -226,9 +233,9 @@
 
   function recalculate_visible() {
 
-    width = $(document).width();
+    pagewidth = $(document).width();
     if (settings.debug && console.debug)
-      console.debug('Scheduling recalculation of visible banners for width ' + width);
+      console.debug('Scheduling recalculation of visible banners for width ' + pagewidth);
     if (!rendering)
       fetch_ads();
     
@@ -240,13 +247,17 @@
     rendering = true;
 
     if (settings.debug && console.debug)
-      console.debug('Starting recalculation of visible banners for width ' + width);
+      console.debug('Starting recalculation of visible banners for width ' + pagewidth);
 
-    var name, src = domain + settings.delivery + '/spc.php';
+    var name, width, src = domain + settings.delivery + '/spc.php';
 
     /** Order banners for all zones that were found on the page */
     src += '?zones=';
     for(id in slots) {
+      width =
+          is_pagewidth[id]
+          ? pagewidth
+          : Math.round($(slots[id]).parent().width());
       visible[id] = width >= min_width[id] && width <= max_width[id];
       if (visible[id]) {
         if (!rendered[id]) {
@@ -297,7 +308,7 @@
       src += "&source=" + escape(OA_source);
 
     /** Signal, that this task is done / in progress */
-    width = undefined;
+    pagewidth = undefined;
 
     /** Fetch data from OpenX and schedule the render-preparation */
     $.getScript(src, init_ads);
@@ -396,7 +407,7 @@
       console.debug('Recalculation of visible banners done!');
 
     /** Restart rendering, if new task was queued */
-    if (width)
+    if (pagewidth)
       fetch_ads();
 
   }
