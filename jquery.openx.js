@@ -95,8 +95,6 @@
    */
   $.openx = function( options ) {
 
-    var name, src, errors = [], i;
-
     if (domain) {
       if (console.error) {
         console.error('jQuery.openx was already initialized!');
@@ -111,12 +109,9 @@
 
     _options = options;
 
-    if (!options.server)
-      errors.push('Required option "server" is missing!');
-    if (errors.length > 0) {
+    if (!options.server) {
       if (console.error) {
-        for (i=0; i<errors.length; i++)
-          console.error('Required option "server" is missing!');
+        console.error('Required option "server" is missing!');
         console.log('options: ', options);
       }
       return;
@@ -148,9 +143,6 @@
      */
     $.ajaxSetup({ 'cache': true });
 
-
-    src = domain + settings.delivery + '/spc.php';
-
     /**
      * jQuery.openx only works with "named zones", because it does not know,
      * which zones belong to which website. For mor informations about
@@ -163,19 +155,31 @@
      * template - and does not have to worry about performance penalties due
      * to unnecessarily fetched banners.
      */
-    src += '?zones=';
     for(name in OA_zones) {
       $(settings.selector).each(function() {
         var
-        node = $(this),
         id;
-        if (node.hasClass(name)) {
+        if (this.id === name) {
           id = 'oa_' + ++count;
-          slots[id] = node;
-          queue.push(id);
-          src += escape(id + '=' + OA_zones[name] + "|");
+          slots[id] = this;
         }
       });
+    }
+
+    /** Fetch the JavaScript for Flash and schedule the initial fetch */
+    $.getScript(domain + settings.delivery + '/' + settings.fl, fetch_ads);
+
+  }
+
+  function fetch_ads() {
+
+    var name, src = domain + settings.delivery + '/spc.php';
+
+    /** Order banners for all zones that were found on the page */
+    src += '?zones=';
+    for(id in slots) {
+      queue.push(id);
+      src += escape(id + '=' + OA_zones[slots[id].id] + "|");
     }
     src += '&nz=1'; // << We want to fetch named zones!
 
@@ -203,14 +207,8 @@
     if (typeof OA_source !== 'undefined')
       src += "&source=" + escape(OA_source);
 
-    /** Chain-load the scripts (next script to load is fl.js */
-    $.getScript(src, load_flash);
-
-  }
-
-  function load_flash() {
-
-    $.getScript(domain + settings.delivery + '/' + settings.fl, init_ads);
+    /** Fetch data from OpenX and schedule the render-preparation */
+    $.getScript(src, init_ads);
 
   }
 
@@ -238,7 +236,7 @@
       var result, src, inline;
 
       id = queue.shift();
-      node = slots[id];
+      node = $(slots[id]);
 
       node.slideDown();
 
