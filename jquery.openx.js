@@ -108,6 +108,7 @@
    *                        If the value is choosen to small, a recalculation
    *                        might be scheduled, while resizing is still in
    *                        progress. DEFAULT: 200.
+   * debug:         boolean Turn on/off console-debugging. DEFAULT: false.
    */
   $.openx = function( options ) {
 
@@ -141,7 +142,8 @@
         'selector': '.oa',
         'min_prefix': 'min_',
         'max_prefix': 'max_',
-        'resize_delay': 200
+        'resize_delay': 200,
+        'debug': false
       },
       options
       );
@@ -152,6 +154,9 @@
       domain += ':' + settings.http_port;
     if (settings.protocol === 'https:' && settings.https_port)
       domain += ':' + settings.https_port;
+
+    if (settings.debug && console.debug)
+      console.debug('Ad-Server: ' + domain);
 
     /**
      * Without this option, jQuery appends an timestamp to every URL, that
@@ -198,6 +203,12 @@
           }
           rendered[id] = false;
           visible[id] = false;
+          if (settings.debug && console.debug)
+            console.debug(
+                'Slot ' + count + ': ' + this.id + ' (' + min_width[id]
+                + (max_width[id] != Number.MAX_VALUE ? '-' + max_width[id] : '')
+                + ')'
+                );
         }
       });
     }
@@ -216,6 +227,8 @@
   function recalculate_visible() {
 
     width = $(document).width();
+    if (settings.debug && console.debug)
+      console.debug('Scheduling recalculation of visible banners for width ' + width);
     if (!rendering)
       fetch_ads();
     
@@ -225,6 +238,9 @@
 
     /** Guide rendering-process for early restarts */
     rendering = true;
+
+    if (settings.debug && console.debug)
+      console.debug('Starting recalculation of visible banners for width ' + width);
 
     var name, src = domain + settings.delivery + '/spc.php';
 
@@ -237,14 +253,20 @@
           queue.push(id);
           src += escape(id + '=' + OA_zones[slots[id].id] + "|");
           rendered[id] = true;
+          if (settings.debug && console.debug)
+            console.debug('Fetching banner ' + slots[id].id);
         }
         else {
           /** Unhide already fetched visible banners */
+          if (settings.debug && console.debug)
+            console.debug('Unhiding already fetched banner ' + slots[id].id);
           $(slots[id]).slideDown();
         }
       }
       else {
         /** Hide unvisible banners */
+        if (settings.debug && console.debug)
+          console.debug('Hiding banner ' + slots[id].id);
         $(slots[id]).hide();
       }
     }
@@ -308,6 +330,9 @@
       id = queue.shift();
       node = $(slots[id]);
 
+      if (settings.debug && console.debug)
+        console.debug('Rendering banner ' + slots[id].id);
+
       node.slideDown();
 
       // node.append(id + ": " + node.attr('class'));
@@ -366,6 +391,9 @@
     id = undefined;
     node = undefined;
     rendering = false;
+
+    if (settings.debug && console.debug)
+      console.debug('Recalculation of visible banners done!');
 
     /** Restart rendering, if new task was queued */
     if (width)
