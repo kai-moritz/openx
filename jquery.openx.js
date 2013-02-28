@@ -29,6 +29,8 @@
 
   count = 0,
   slots = {},
+  min_width = {},
+  max_width = {},
   queue = [],
   output = [];
 
@@ -92,6 +94,10 @@
    * selector:      string  A selector for selecting the DOM-elements, that
    *                        should display ad-banners. DEFAULT: ".oa".
    *                        See: http://api.jquery.com/category/selectors/
+   * min_prefix:    string  Prefix for the encoding of the minmal width as
+   *                        CSS-classname. DEFAULT: "min_".
+   * max_prefix:    string  Prefix for the encoding of the maximal width as
+   *                        CSS-classname. DEFAULT: "max_".
    */
   $.openx = function( options ) {
 
@@ -123,6 +129,8 @@
         'delivery': '/www/delivery',
         'fl': 'fl.js',
         'selector': '.oa',
+        'min_prefix': 'min_',
+        'max_prefix': 'max_',
         'cache': true
       },
       options
@@ -158,10 +166,26 @@
     for(name in OA_zones) {
       $(settings.selector).each(function() {
         var
-        id;
+        id,
+        classes,
+        i,
+        min = new RegExp('^' + settings.min_prefix + '([0-9]+)$'),
+        max = new RegExp('^' + settings.max_prefix + '([0-9]+)$'),
+        match;
         if (this.id === name) {
           id = 'oa_' + ++count;
           slots[id] = this;
+          min_width[id] = 0;
+          max_width[id] = Number.MAX_VALUE;
+          classes = this.className.split(/\s+/);
+          for (i=0; i<classes.length; i++) {
+            match = min.exec(classes[i]);
+            if (match)
+              min_width[id] = match[1];
+            match = max.exec(classes[i]);
+            if (match)
+              max_width[id] = match[1];
+          }
         }
       });
     }
