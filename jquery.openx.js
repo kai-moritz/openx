@@ -133,7 +133,6 @@
         'selector': '.oa',
         'min_prefix': 'min_',
         'max_prefix': 'max_',
-        'cache': true
       },
       options
       );
