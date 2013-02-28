@@ -31,6 +31,7 @@
   slots = {},
   min_width = {},
   max_width = {},
+  width,
   queue = [],
   output = [];
 
@@ -190,6 +191,9 @@
       });
     }
 
+    /** Set initial window-width */
+    width = $(document).width();
+
     /** Fetch the JavaScript for Flash and schedule the initial fetch */
     $.getScript(domain + settings.delivery + '/' + settings.fl, fetch_ads);
 
@@ -202,8 +206,10 @@
     /** Order banners for all zones that were found on the page */
     src += '?zones=';
     for(id in slots) {
-      queue.push(id);
-      src += escape(id + '=' + OA_zones[slots[id].id] + "|");
+      if (width >= min_width[id] && width <= max_width[id]) {
+        queue.push(id);
+        src += escape(id + '=' + OA_zones[slots[id].id] + "|");
+      }
     }
     src += '&nz=1'; // << We want to fetch named zones!
 
