@@ -30,7 +30,6 @@
   count = 0,
   slots = {},
   queue = [],
-  ads = [],
   output = [];
 
 
@@ -217,12 +216,13 @@
 
   function init_ads() {
 
-    var i, id;
+    var i, id, ads = [];
     for (i=0; i<queue.length; i++) {
       id = queue[i];
       if (typeof(OA_output[id]) != 'undefined' && OA_output[id] != '')
         ads.push(id);
     }
+    queue = ads;
 
     document.write = document_write;
     document.writeln = document_write;
@@ -233,11 +233,11 @@
 
   function render_ads() {
 
-    while (ads.length > 0) {
+    while (queue.length > 0) {
 
       var result, src, inline;
 
-      id = ads.shift();
+      id = queue.shift();
       node = slots[id];
 
       node.slideDown();
@@ -281,7 +281,7 @@
             /** script-tag with src-URL! */
             if (OA_output[id].length > 0)
               /** The banner-code was not rendered completely yet! */
-              ads.unshift(id);
+              queue.unshift(id);
             /** Load the script and halt all work until the script is loaded and executed... */
             $.getScript(result[1], render_ads); // << jQuery.getScript() generates onload-Handler for _all_ browsers ;)
             return;
@@ -308,7 +308,7 @@
     for (var i=0; i<arguments.length; i++)
       output.push(arguments[i]);
 
-    if (id != ads[0])
+    if (id != queue[0])
       /**
        * Re-Add the last banner-code to the working-queue, because included
        * scripts had added markup via document.write(), which is not
@@ -316,7 +316,7 @@
        * Otherwise the added markup would be falsely rendered together with
        * the markup from the following banner-code.
        */
-      ads.unshift(id);
+      queue.unshift(id);
 
   }
 
