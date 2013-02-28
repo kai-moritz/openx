@@ -33,6 +33,9 @@
   max_width = {},
   width,
   rendered = {},
+  visible = {},
+  rendering = false,
+  resize_timer,
   queue = [],
   output = [];
 
@@ -100,6 +103,11 @@
    *                        CSS-classname. DEFAULT: "min_".
    * max_prefix:    string  Prefix for the encoding of the maximal width as
    *                        CSS-classname. DEFAULT: "max_".
+   * resize_delay:  number  Number of milliseconds to wait, before a
+   *                        recalculation of the visible ads is scheduled.
+   *                        If the value is choosen to small, a recalculation
+   *                        might be scheduled, while resizing is still in
+   *                        progress. DEFAULT: 200.
    */
   $.openx = function( options ) {
 
@@ -133,6 +141,7 @@
         'selector': '.oa',
         'min_prefix': 'min_',
         'max_prefix': 'max_',
+        'resize_delay': 200
       },
       options
       );
@@ -188,29 +197,55 @@
               max_width[id] = match[1];
           }
           rendered[id] = false;
+          visible[id] = false;
         }
       });
     }
 
-    /** Set initial window-width */
-    width = $(document).width();
+    /** Add resize-event */
+    $(window).resize(function() {
+      clearTimeout(resize_timer);
+      resize_timer = setTimeout(recalculate_visible , settings.resize_timeout);
+    });
 
     /** Fetch the JavaScript for Flash and schedule the initial fetch */
-    $.getScript(domain + settings.delivery + '/' + settings.fl, fetch_ads);
+    $.getScript(domain + settings.delivery + '/' + settings.fl, recalculate_visible);
 
   }
 
+  function recalculate_visible() {
+
+    width = $(document).width();
+    if (!rendering)
+      fetch_ads();
+    
+  }
+
   function fetch_ads() {
+
+    /** Guide rendering-process for early restarts */
+    rendering = true;
 
     var name, src = domain + settings.delivery + '/spc.php';
 
     /** Order banners for all zones that were found on the page */
     src += '?zones=';
     for(id in slots) {
-      if (width >= min_width[id] && width <= max_width[id]) {
-        queue.push(id);
-        src += escape(id + '=' + OA_zones[slots[id].id] + "|");
-        rendered[id] = true;
+      visible[id] = width >= min_width[id] && width <= max_width[id];
+      if (visible[id]) {
+        if (!rendered[id]) {
+          queue.push(id);
+          src += escape(id + '=' + OA_zones[slots[id].id] + "|");
+          rendered[id] = true;
+        }
+        else {
+          /** Unhide already fetched visible banners */
+          $(slots[id]).slideDown();
+        }
+      }
+      else {
+        /** Hide unvisible banners */
+        $(slots[id]).hide();
       }
     }
     src += '&nz=1'; // << We want to fetch named zones!
@@ -238,6 +273,9 @@
     /** Add the source-code - if present */
     if (typeof OA_source !== 'undefined')
       src += "&source=" + escape(OA_source);
+
+    /** Signal, that this task is done / in progress */
+    width = undefined;
 
     /** Fetch data from OpenX and schedule the render-preparation */
     $.getScript(src, init_ads);
@@ -327,6 +365,12 @@
 
     id = undefined;
     node = undefined;
+    rendering = false;
+
+    /** Restart rendering, if new task was queued */
+    if (width)
+      fetch_ads();
+
   }
 
   /** This function is used to overwrite document.write and document.writeln */
